@@ -1,18 +1,15 @@
-// db.js (Versión Corregida y Optimizada)
+// db.js (Conexión a PostgreSQL en cPanel desde Render)
 const { Pool } = require('pg');
 
-// Configuración óptima para Supabase PostgreSQL
+// Configuración para PostgreSQL en cPanel
 const config = {
-  user: 'postgres.sytbqsmmmeetawleiktx', // Usuario con formato: postgres.[project-ref-id]
-  host: 'aws-0-sa-east-1.pooler.supabase.com',
-  database: 'postgres',
-  password: 'Fallout#123456789Metro', // La # debe estar URL-encoded como %23
-  port: 6543, // Puerto obligatorio para el Pooler
-  ssl: {
-    rejectUnauthorized: false, // SSL requerido
-    ca: '' // Agrega el certificado si es necesario
-  },
-  max: 20, // Máximo de conexiones en el pool
+  user: 'papelera_admin_papelera', // Tu usuario de base de datos PostgreSQL
+  host: 'papelerapreverbusiness.net',    // Ejemplo: db.tudominio.com
+  database: 'papelera_db', // Nombre de la base de datos
+  password: 'Fallout#123456789Metro', // Contraseña de la base de datos
+  port: 5432, // Puerto estándar de PostgreSQL (a menos que cPanel use otro)
+  ssl: false, // La mayoría de servidores en cPanel no requieren SSL para conexiones internas
+  max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 5000
 };
@@ -22,13 +19,10 @@ const pool = new Pool(config);
 
 // Verificar conexión al iniciar
 pool.query('SELECT NOW()')
-  .then(() => console.log('✅ Conexión exitosa al Pooler de Supabase'))
+  .then(() => console.log('✅ Conexión exitosa a PostgreSQL en cPanel'))
   .catch(err => {
     console.error('❌ Error de conexión:', err.message);
-    console.log('🔍 Verifica:');
-    console.log('1. Credenciales en Supabase > Project Settings > Database');
-    console.log('2. Connection Pooling habilitado en modo Session');
-    console.log('3. IP de tu hosting en Network Restrictions');
+    console.log('🔍 Verifica: host, usuario, contraseña y permisos externos en tu cPanel');
   });
 
 // Exportar el pool para reutilizar conexiones
