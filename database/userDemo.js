@@ -1,4 +1,4 @@
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const db = require('./db'); // Asegúrate de que la ruta sea correcta
 
 const crearUsuarioDemo = async () => {
