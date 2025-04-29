@@ -1,7 +1,7 @@
 const { Client } = require('pg');
 
 // La URL de conexión a PostgreSQL proporcionada por Supabase
-const supabaseConnectionUrl = 'postgresql://postgres:Fallout#123456789Metro@db.sytbqsmmmeetawleiktx.supabase.co:5432/postgres';
+const supabaseConnectionUrl = 'postgresql://postgres:[Fallout#123456789Metro]@db.sytbqsmmmeetawleiktx.supabase.co:5432/postgres';
 
 // Configura la conexión con PostgreSQL (ajusta la URL según tu configuración de Supabase)
 const client = new Client({
