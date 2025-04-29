@@ -7,12 +7,13 @@ const encodedPassword = encodeURIComponent(password);
 // Construimos la URL de conexión
 const supabaseConnectionUrl = `postgresql://postgres:${encodedPassword}@db.sytbqsmmmeetawleiktx.supabase.co:5432/postgres`;
 
-
-
 // Luego, puedes usar esta URL en tu cliente de conexión
 const { Client } = require('pg');
 const client = new Client({
     connectionString: supabaseConnectionUrl,
+    ssl: {
+        rejectUnauthorized: false
+    }
 });
 
 client.connect((err) => {
