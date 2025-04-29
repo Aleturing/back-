@@ -9,9 +9,9 @@ const { Pool } = require("pg"); // Añadimos el cliente PostgreSQL
 const pool = new Pool({
   host: "localhost", // o la IP del servidor PostgreSQL
   port: 5432, // Puerto predeterminado
-  user: "tu_usuario_cpanel", // Ej: admin_papelera
-  password: "tu_contraseña_segura", // La que creaste en cPanel
-  database: "nombre_base_datos", // Ej: papelera_db
+  user: "papelera_admin_papelera", // Ej: admin_papelera
+  password: "Fallout#123456789Metro", // La que creaste en cPanel
+  database: "papelera_db", // Ej: papelera_db
   ssl: {
     rejectUnauthorized: false // Necesario en la mayoría de hostings compartidos
   }
