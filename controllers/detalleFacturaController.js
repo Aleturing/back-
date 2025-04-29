@@ -27,14 +27,47 @@ exports.getDetalleFacturaById = (req, res) => {
 // Crear un nuevo detalle de factura
 exports.createDetalleFactura = (req, res) => {
     const { factura_compra_id, factura_venta_id, producto_id, cantidad, precio_unitario } = req.body;
-    const query = 'INSERT INTO detalle_factura (factura_compra_id, factura_venta_id, producto_id, cantidad, precio_unitario) VALUES (?, ?, ?, ?, ?)';
-    db.run(query, [factura_compra_id, factura_venta_id, producto_id, cantidad, precio_unitario], function (err) {
+
+    // Paso 1: Verificar el stock actual del producto
+    const checkStockQuery = 'SELECT stock FROM productos WHERE id = ?';
+    db.get(checkStockQuery, [producto_id], (err, row) => {
         if (err) {
             return res.status(500).json({ error: err.message });
         }
-        res.status(201).json({ id: this.lastID });
+        
+        // Si no se encuentra el producto, retornamos un error
+        if (!row) {
+            return res.status(404).json({ error: 'Producto no encontrado' });
+        }
+
+        const stockActual = row.stock;
+
+        // Paso 2: Verificar si hay suficiente stock para completar la compra
+        if (stockActual < cantidad) {
+            return res.status(400).json({ error: 'No hay suficiente stock disponible' });
+        }
+
+        // Paso 3: Restar la cantidad comprada del stock
+        const updateStockQuery = 'UPDATE productos SET stock = stock - ? WHERE id = ?';
+        db.run(updateStockQuery, [cantidad, producto_id], function (err) {
+            if (err) {
+                return res.status(500).json({ error: err.message });
+            }
+
+            // Paso 4: Insertar el detalle de la factura
+            const insertDetalleQuery = 'INSERT INTO detalle_factura (factura_compra_id, factura_venta_id, producto_id, cantidad, precio_unitario) VALUES (?, ?, ?, ?, ?)';
+            db.run(insertDetalleQuery, [factura_compra_id, factura_venta_id, producto_id, cantidad, precio_unitario], function (err) {
+                if (err) {
+                    return res.status(500).json({ error: err.message });
+                }
+
+                // Paso 5: Devolver la respuesta con el ID del detalle de factura creado
+                res.status(201).json({ id: this.lastID });
+            });
+        });
     });
 };
+
 
 // Actualizar un detalle de factura
 exports.updateDetalleFactura = (req, res) => {

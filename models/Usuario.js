@@ -27,7 +27,7 @@ const Usuario = {
     );
   },
 
-  obtenerPorNombre: (nombre, callback) => {
+  obtenerPorNombre: (nombre, callback) => { 
     const sql = "SELECT * FROM usuario WHERE nombre = ?";
     db.get(sql, [nombre], (err, row) => {
       callback(err, row);
