@@ -1,35 +1,35 @@
-// db.js
-const { Client } = require('pg');
+// db.js (Versión Corregida y Optimizada)
+const { Pool } = require('pg');
 
-// Cadena completa de conexión al Pooler de Supabase con la contraseña correcta
-const connectionString = 'postgresql://postgres.sytbqsmmmeetawleiktx:Fallout%23123456789Metro@aws-0-sa-east-1.pooler.supabase.com:5432/postgres';
-
-// Crear el cliente de PostgreSQL
-const client = new Client({
-  connectionString,
+// Configuración óptima para Supabase PostgreSQL
+const config = {
+  user: 'postgres.sytbqsmmmeetawleiktx', // Usuario con formato: postgres.[project-ref-id]
+  host: 'aws-0-sa-east-1.pooler.supabase.com',
+  database: 'postgres',
+  password: 'Fallout#123456789Metro', // La # debe estar URL-encoded como %23
+  port: 6543, // Puerto obligatorio para el Pooler
   ssl: {
-    rejectUnauthorized: false // SSL obligatorio para Supabase
-  }
-});
+    rejectUnauthorized: false, // SSL requerido
+    ca: '' // Agrega el certificado si es necesario
+  },
+  max: 20, // Máximo de conexiones en el pool
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000
+};
 
-// Intentar conectar y hacer una consulta de prueba
-client.connect(err => {
-  if (err) {
-    console.error('❌ Error al conectar al Pooler de Supabase:', err.message);
-  } else {
-    console.log('✅ Conexión exitosa al Pooler de Supabase (PostgreSQL).');
-    client.query(
-      "SELECT table_name FROM information_schema.tables WHERE table_schema='public';",
-      (err, res) => {
-        if (err) {
-          console.error('❌ Error al listar tablas:', err.message);
-        } else {
-          console.log('📋 Tablas en la base de datos:', res.rows);
-        }
-        client.end();
-      }
-    );
-  }
-});
+// Crear el pool de conexiones
+const pool = new Pool(config);
 
-module.exports = client;
+// Verificar conexión al iniciar
+pool.query('SELECT NOW()')
+  .then(() => console.log('✅ Conexión exitosa al Pooler de Supabase'))
+  .catch(err => {
+    console.error('❌ Error de conexión:', err.message);
+    console.log('🔍 Verifica:');
+    console.log('1. Credenciales en Supabase > Project Settings > Database');
+    console.log('2. Connection Pooling habilitado en modo Session');
+    console.log('3. IP de tu hosting en Network Restrictions');
+  });
+
+// Exportar el pool para reutilizar conexiones
+module.exports = pool;
