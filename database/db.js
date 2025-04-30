@@ -7,7 +7,7 @@ const config = {
   host: 'movilprofit.com',    // Ejemplo: db.tudominio.com
   database: 'movilpro_papeleria', // Nombre de la base de datos
   password: 'Alfredo123456.,', // Contraseña de la base de datos
-  port: 5432, // Puerto estándar de PostgreSQL (a menos que cPanel use otro)
+  port: 3306, // Puerto estándar de PostgreSQL (a menos que cPanel use otro)
   ssl: false, // La mayoría de servidores en cPanel no requieren SSL para conexiones internas
   max: 20,
   idleTimeoutMillis: 30000,
