@@ -4,7 +4,7 @@ const { Pool } = require('pg');
 // Configuración para PostgreSQL en cPanel
 const config = {
   user: 'movilpro_alfredo', // Tu usuario de base de datos PostgreSQL
-  host: 'movilprofil.com',    // Ejemplo: db.tudominio.com
+  host: 'movilprofit.com',    // Ejemplo: db.tudominio.com
   database: 'movilpro_papeleria', // Nombre de la base de datos
   password: 'Alfredo123456.,', // Contraseña de la base de datos
   port: 5432, // Puerto estándar de PostgreSQL (a menos que cPanel use otro)
