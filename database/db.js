@@ -4,7 +4,7 @@ const { Pool } = require('pg');
 // Configuración para PostgreSQL en cPanel
 const config = {
   user: 'papelera_admin_papelera', // Tu usuario de base de datos PostgreSQL
-  host: 'papelerapreverbusiness.net',    // Ejemplo: db.tudominio.com
+  host: '162.245.189.194',    // Ejemplo: db.tudominio.com
   database: 'papelera_db', // Nombre de la base de datos
   password: 'Fallout#123456789Metro', // Contraseña de la base de datos
   port: 5432, // Puerto estándar de PostgreSQL (a menos que cPanel use otro)
