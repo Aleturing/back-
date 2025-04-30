@@ -1,5 +1,4 @@
-const db = require('../database/db');
-
+const db = require("../database/db");
 const Producto = {
   getAll: (callback) => {
     db.all('SELECT * FROM productos', [], callback);
