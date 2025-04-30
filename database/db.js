@@ -15,15 +15,20 @@ const config = {
 };
 
 // Crear el pool de conexiones
-const pool = new Pool(config);
+const db = new Pool(config);
 
-// Verificar conexión al iniciar
-pool.query('SELECT NOW()')
-  .then(() => console.log('✅ Conexión exitosa a PostgreSQL en cPanel'))
-  .catch(err => {
+// Función para verificar la conexión al iniciar
+async function verificarConexion() {
+  try {
+    const res = await db.query('SELECT NOW()');
+    console.log('✅ Conexión exitosa a PostgreSQL en cPanel:', res.rows[0]);
+  } catch (err) {
     console.error('❌ Error de conexión:', err.message);
     console.log('🔍 Verifica: host, usuario, contraseña y permisos externos en tu cPanel');
-  });
+  }
+}
+
+verificarConexion();
 
 // Exportar el pool para reutilizar conexiones
-module.exports = pool;
+module.exports = db;
