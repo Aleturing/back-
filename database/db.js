@@ -1,34 +1,36 @@
-// db.js (Conexión a PostgreSQL en cPanel desde Render)
-const { Pool } = require('pg');
+// db.js (Conexión a MySQL en cPanel desde Render)
+const mysql = require('mysql2');
 
-// Configuración para PostgreSQL en cPanel
+// Configuración para MySQL en cPanel
 const config = {
-  user: 'movilpro_alfredo', // Tu usuario de base de datos PostgreSQL
-  host: 'movilprofit.com',    // Ejemplo: db.tudominio.com
+  user: 'movilpro_alfredo', // Tu usuario de base de datos MySQL
+  host: 'movilprofit.com',   // Tu dominio de base de datos
   database: 'movilpro_papeleria', // Nombre de la base de datos
   password: 'Alfredo123456.,', // Contraseña de la base de datos
-  port: 3306, // Puerto estándar de PostgreSQL (a menos que cPanel use otro)
-  ssl: false, // La mayoría de servidores en cPanel no requieren SSL para conexiones internas
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000
+  port: 3306, // Puerto estándar de MySQL
+  ssl: false, // No es necesario para la mayoría de los servidores en cPanel
 };
 
-// Crear el pool de conexiones
-const db = new Pool(config);
+// Crear la conexión a MySQL
+const db = mysql.createPool(config);
 
 // Función para verificar la conexión al iniciar
 async function verificarConexion() {
   try {
-    const res = await db.query('SELECT NOW()');
-    console.log('✅ Conexión exitosa a PostgreSQL en cPanel:', res.rows[0]);
+    db.query('SELECT NOW()', (err, results) => {
+      if (err) {
+        console.error('❌ Error de conexión:', err.message);
+        console.log('🔍 Verifica: host, usuario, contraseña y permisos externos en tu cPanel');
+      } else {
+        console.log('✅ Conexión exitosa a MySQL en cPanel:', results);
+      }
+    });
   } catch (err) {
-    console.error('❌ Error de conexión:', err.message);
-    console.log('🔍 Verifica: host, usuario, contraseña y permisos externos en tu cPanel');
+    console.error('❌ Error al ejecutar la consulta:', err.message);
   }
 }
 
 verificarConexion();
 
-// Exportar el pool para reutilizar conexiones
+// Exportar la conexión para reutilizarla
 module.exports = db;
