@@ -35,5 +35,5 @@ app.use("/api/protegida", verificarToken, (req, res) => {
 // ================== Iniciar servidor ==================
 const PORT = process.env.PORT || 3000; // Mejor usar variable de entorno
 app.listen(PORT, () => {
-  console.log(`Servidor ejecutándose en http://localhost:${PORT}`);
+  console.log(`Servidor ejecutándose en http://localhost:10000`);
 });
