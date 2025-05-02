@@ -1,40 +1,55 @@
 const db = require("../database/db");
+
 const Producto = {
   getAll: (callback) => {
-    db.all('SELECT * FROM productos', [], callback);
+    const sql = "SELECT * FROM productos";
+    db.query(sql, (err, results) => {
+      callback(err, results);
+    });
   },
 
   getById: (id, callback) => {
-    db.get('SELECT * FROM productos WHERE id = ?', [id], callback);
+    const sql = "SELECT * FROM productos WHERE id = ?";
+    db.query(sql, [id], (err, results) => {
+      callback(err, results[0]);
+    });
   },
 
   create: (data, callback) => {
     const { nombre, descripcion, precio, stock, foto } = data;
-    const query = `
-      INSERT INTO productos (nombre, descripcion, precio, stock, foto) 
+    const sql = `
+      INSERT INTO productos (nombre, descripcion, precio, stock, foto)
       VALUES (?, ?, ?, ?, ?)
     `;
-    db.run(query, [nombre, descripcion, precio, stock, foto], function (err) {
-      callback(err, this?.lastID);
-    });
+    db.query(
+      sql,
+      [nombre, descripcion, precio, stock, foto],
+      (err, results) => {
+        callback(err, results.insertId);
+      }
+    );
   },
 
   update: (id, data, callback) => {
     const { nombre, descripcion, precio, stock, foto } = data;
-    const query = `
-      UPDATE productos 
-      SET nombre = ?, descripcion = ?, precio = ?, stock = ?, foto = ? 
+    const sql = `
+      UPDATE productos
+      SET nombre = ?, descripcion = ?, precio = ?, stock = ?, foto = ?
       WHERE id = ?
     `;
-    db.run(query, [nombre, descripcion, precio, stock, foto, id], function (err) {
-      callback(err, this?.changes);
-    });
+    db.query(
+      sql,
+      [nombre, descripcion, precio, stock, foto, id],
+      (err, results) => {
+        callback(err, results.affectedRows);
+      }
+    );
   },
 
   delete: (id, callback) => {
-    const query = 'DELETE FROM productos WHERE id = ?';
-    db.run(query, [id], function (err) {
-      callback(err, this?.changes);
+    const sql = "DELETE FROM productos WHERE id = ?";
+    db.query(sql, [id], (err, results) => {
+      callback(err, results.affectedRows);
     });
   }
 };

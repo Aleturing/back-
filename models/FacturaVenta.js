@@ -2,41 +2,55 @@ const db = require("../database/db");
 
 const FacturaVenta = {
   getAll: (callback) => {
-    db.all('SELECT * FROM factura_venta', [], callback);
+    const sql = "SELECT * FROM factura_venta";
+    db.query(sql, (err, results) => {
+      callback(err, results);
+    });
   },
 
   getById: (id, callback) => {
-    db.get('SELECT * FROM factura_venta WHERE id = ?', [id], callback);
+    const sql = "SELECT * FROM factura_venta WHERE id = ?";
+    db.query(sql, [id], (err, results) => {
+      callback(err, results[0]);
+    });
   },
 
   create: (data, callback) => {
     const { cliente_id, fecha, total, usuario_id, anulada, tasa, detalle_factura_id, devolucion_venta_id } = data;
-    const query = `
+    const sql = `
       INSERT INTO factura_venta 
       (cliente_id, fecha, total, usuario_id, anulada, tasa, detalle_factura_id, devolucion_venta_id) 
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
-    db.run(query, [cliente_id, fecha, total, usuario_id, anulada, tasa, detalle_factura_id, devolucion_venta_id], function (err) {
-      callback(err, this?.lastID);
-    });
+    db.query(
+      sql,
+      [cliente_id, fecha, total, usuario_id, anulada, tasa, detalle_factura_id, devolucion_venta_id],
+      (err, results) => {
+        callback(err, results.insertId);
+      }
+    );
   },
 
   update: (id, data, callback) => {
     const { cliente_id, fecha, total, usuario_id, anulada, tasa, detalle_factura_id, devolucion_venta_id } = data;
-    const query = `
+    const sql = `
       UPDATE factura_venta 
       SET cliente_id = ?, fecha = ?, total = ?, usuario_id = ?, anulada = ?, tasa = ?, detalle_factura_id = ?, devolucion_venta_id = ? 
       WHERE id = ?
     `;
-    db.run(query, [cliente_id, fecha, total, usuario_id, anulada, tasa, detalle_factura_id, devolucion_venta_id, id], function (err) {
-      callback(err, this?.changes);
-    });
+    db.query(
+      sql,
+      [cliente_id, fecha, total, usuario_id, anulada, tasa, detalle_factura_id, devolucion_venta_id, id],
+      (err, results) => {
+        callback(err, results.affectedRows);
+      }
+    );
   },
 
   delete: (id, callback) => {
-    const query = 'DELETE FROM factura_venta WHERE id = ?';
-    db.run(query, [id], function (err) {
-      callback(err, this?.changes);
+    const sql = "DELETE FROM factura_venta WHERE id = ?";
+    db.query(sql, [id], (err, results) => {
+      callback(err, results.affectedRows);
     });
   }
 };

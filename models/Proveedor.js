@@ -2,40 +2,54 @@ const db = require("../database/db");
 
 const Proveedor = {
   getAll: (callback) => {
-    db.all('SELECT * FROM proveedores', [], callback);
+    const sql = "SELECT * FROM proveedores";
+    db.query(sql, (err, results) => {
+      callback(err, results);
+    });
   },
 
   getById: (id, callback) => {
-    db.get('SELECT * FROM proveedores WHERE id = ?', [id], callback);
+    const sql = "SELECT * FROM proveedores WHERE id = ?";
+    db.query(sql, [id], (err, results) => {
+      callback(err, results[0]);
+    });
   },
 
   create: (data, callback) => {
     const { nombre, email, telefono, direccion, cedula, rif } = data;
-    const query = `
-      INSERT INTO proveedores (nombre, email, telefono, direccion, cedula, rif) 
+    const sql = `
+      INSERT INTO proveedores (nombre, email, telefono, direccion, cedula, rif)
       VALUES (?, ?, ?, ?, ?, ?)
     `;
-    db.run(query, [nombre, email, telefono, direccion, cedula, rif], function (err) {
-      callback(err, this?.lastID);
-    });
+    db.query(
+      sql,
+      [nombre, email, telefono, direccion, cedula, rif],
+      (err, results) => {
+        callback(err, results.insertId);
+      }
+    );
   },
 
   update: (id, data, callback) => {
     const { nombre, email, telefono, direccion, cedula, rif } = data;
-    const query = `
-      UPDATE proveedores 
-      SET nombre = ?, email = ?, telefono = ?, direccion = ?, cedula = ?, rif = ? 
+    const sql = `
+      UPDATE proveedores
+      SET nombre = ?, email = ?, telefono = ?, direccion = ?, cedula = ?, rif = ?
       WHERE id = ?
     `;
-    db.run(query, [nombre, email, telefono, direccion, cedula, rif, id], function (err) {
-      callback(err, this?.changes);
-    });
+    db.query(
+      sql,
+      [nombre, email, telefono, direccion, cedula, rif, id],
+      (err, results) => {
+        callback(err, results.affectedRows);
+      }
+    );
   },
 
   delete: (id, callback) => {
-    const query = 'DELETE FROM proveedores WHERE id = ?';
-    db.run(query, [id], function (err) {
-      callback(err, this?.changes);
+    const sql = "DELETE FROM proveedores WHERE id = ?";
+    db.query(sql, [id], (err, results) => {
+      callback(err, results.affectedRows);
     });
   }
 };
