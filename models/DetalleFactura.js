@@ -14,42 +14,31 @@ const DetalleFactura = {
   crear: (detalle, callback) => {
     const { factura_compra_id, factura_venta_id, producto_id, cantidad, precio_unitario } = detalle;
 
-    db.beginTransaction((err) => {
+    const sqlStock = 'SELECT stock FROM productos WHERE id = ?';
+    db.query(sqlStock, [producto_id], (err, results) => {
       if (err) return callback(err);
+      const producto = results[0];
+      if (!producto) return callback(new Error('Producto no encontrado'));
+      if (producto.stock < cantidad) return callback(new Error('No hay suficiente stock disponible'));
 
-      const sqlStock = 'SELECT stock FROM productos WHERE id = ?';
-      db.query(sqlStock, [producto_id], (err, results) => {
-        if (err) return rollback(err);
-        const producto = results[0];
-        if (!producto) return rollback(new Error('Producto no encontrado'));
-        if (producto.stock < cantidad) return rollback(new Error('No hay suficiente stock disponible'));
+      const sqlUpdateStock = 'UPDATE productos SET stock = stock - ? WHERE id = ?';
+      db.query(sqlUpdateStock, [cantidad, producto_id], (err) => {
+        if (err) return callback(err);
 
-        const sqlUpdateStock = 'UPDATE productos SET stock = stock - ? WHERE id = ?';
-        db.query(sqlUpdateStock, [cantidad, producto_id], (err) => {
-          if (err) return rollback(err);
-
-          const sqlInsert = `
-            INSERT INTO detalle_factura 
-            (factura_compra_id, factura_venta_id, producto_id, cantidad, precio_unitario)
-            VALUES (?, ?, ?, ?, ?)
-          `;
-          db.query(
-            sqlInsert,
-            [factura_compra_id, factura_venta_id, producto_id, cantidad, precio_unitario],
-            (err, result) => {
-              if (err) return rollback(err);
-              db.commit((err) => {
-                if (err) return rollback(err);
-                callback(null, result.insertId);
-              });
-            }
-          );
-        });
+        const sqlInsert = `
+          INSERT INTO detalle_factura 
+          (factura_compra_id, factura_venta_id, producto_id, cantidad, precio_unitario)
+          VALUES (?, ?, ?, ?, ?)
+        `;
+        db.query(
+          sqlInsert,
+          [factura_compra_id, factura_venta_id, producto_id, cantidad, precio_unitario],
+          (err, result) => {
+            if (err) return callback(err);
+            callback(null, result.insertId);
+          }
+        );
       });
-
-      function rollback(error) {
-        db.rollback(() => callback(error));
-      }
     });
   },
 
