@@ -1,62 +1,59 @@
-const db = require('../database/db');
+const Producto = require('../models/Producto');
 
-// Obtener todos los productos
-exports.getProductos = (req, res) => {
-    db.all('SELECT * FROM productos', [], (err, rows) => {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        res.json(rows);
-    });
+// Listar todos los productos
+const getProductos = (req, res, next) => {
+  Producto.getAll((err, rows) => {
+    if (err) return next(err);
+    res.json(rows);
+  });
 };
 
 // Obtener un producto por ID
-exports.getProductoById = (req, res) => {
-    const { id } = req.params;
-    db.get('SELECT * FROM productos WHERE id = ?', [id], (err, row) => {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        if (!row) {
-            return res.status(404).json({ message: 'Producto no encontrado' });
-        }
-        res.json(row);
-    });
+const getProductoById = (req, res, next) => {
+  const { id } = req.params;
+  Producto.getById(id, (err, row) => {
+    if (err) return next(err);
+    if (!row) return res.status(404).json({ message: 'Producto no encontrado' });
+    res.json(row);
+  });
 };
 
 // Crear un nuevo producto
-exports.createProducto = (req, res) => {
-    const { nombre, descripcion, precio, stock, foto } = req.body;
-    const query = 'INSERT INTO productos (nombre, descripcion, precio, stock, foto) VALUES (?, ?, ?, ?, ?)';
-    db.run(query, [nombre, descripcion, precio, stock, foto], function (err) {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        res.status(201).json({ id: this.lastID });
-    });
+const createProducto = (req, res, next) => {
+  const { nombre, descripcion, precio, stock, foto } = req.body;
+  const data = { nombre, descripcion, precio, stock, foto };
+  Producto.create(data, (err, insertId) => {
+    if (err) return next(err);
+    res.status(201).json({ message: 'Producto creado correctamente', id: insertId });
+  });
 };
 
-// Actualizar un producto
-exports.updateProducto = (req, res) => {
-    const { id } = req.params;
-    const { nombre, descripcion, precio, stock, foto } = req.body;
-    const query = 'UPDATE productos SET nombre = ?, descripcion = ?, precio = ?, stock = ?, foto = ? WHERE id = ?';
-    db.run(query, [nombre, descripcion, precio, stock, foto, id], function (err) {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        res.json({ message: 'Producto actualizado correctamente' });
-    });
+// Actualizar un producto existente
+const updateProducto = (req, res, next) => {
+  const { id } = req.params;
+  const { nombre, descripcion, precio, stock, foto } = req.body;
+  const data = { nombre, descripcion, precio, stock, foto };
+  Producto.update(id, data, (err, affectedRows) => {
+    if (err) return next(err);
+    if (affectedRows === 0) return res.status(404).json({ message: 'Producto no encontrado' });
+    res.json({ message: 'Producto actualizado correctamente' });
+  });
 };
 
 // Eliminar un producto
-exports.deleteProducto = (req, res) => {
-    const { id } = req.params;
-    const query = 'DELETE FROM productos WHERE id = ?';
-    db.run(query, [id], function (err) {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        res.json({ message: 'Producto eliminado correctamente' });
-    });
+const deleteProducto = (req, res, next) => {
+  const { id } = req.params;
+  Producto.delete(id, (err, affectedRows) => {
+    if (err) return next(err);
+    if (affectedRows === 0) return res.status(404).json({ message: 'Producto no encontrado' });
+    res.json({ message: 'Producto eliminado correctamente' });
+  });
+};
+
+module.exports = {
+  getProductos,
+  getProductoById,
+  createProducto,
+  updateProducto,
+  deleteProducto
 };

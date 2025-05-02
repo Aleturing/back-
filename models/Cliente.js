@@ -1,18 +1,17 @@
-const db = require("../database/db");
+const db = require('../database/db');
 
 const Cliente = {
-  getAll: (callback) => {
+  obtenerTodos(callback) {
     db.all('SELECT * FROM clientes', [], callback);
   },
 
-  getById: (id, callback) => {
+  obtenerPorId(id, callback) {
     db.get('SELECT * FROM clientes WHERE id = ?', [id], callback);
   },
 
-  create: (data, callback) => {
-    const { nombre, email, telefono, direccion, cedula, rif } = data;
+  crear({ nombre, email, telefono, direccion, cedula, rif }, callback) {
     const query = `
-      INSERT INTO clientes (nombre, email, telefono, direccion, cedula, rif) 
+      INSERT INTO clientes (nombre, email, telefono, direccion, cedula, rif)
       VALUES (?, ?, ?, ?, ?, ?)
     `;
     db.run(query, [nombre, email, telefono, direccion, cedula, rif], function (err) {
@@ -20,23 +19,18 @@ const Cliente = {
     });
   },
 
-  update: (id, data, callback) => {
-    const { nombre, email, telefono, direccion, cedula, rif } = data;
+  actualizar(id, { nombre, email, telefono, direccion, cedula, rif }, callback) {
     const query = `
-      UPDATE clientes 
-      SET nombre = ?, email = ?, telefono = ?, direccion = ?, cedula = ?, rif = ? 
+      UPDATE clientes
+      SET nombre = ?, email = ?, telefono = ?, direccion = ?, cedula = ?, rif = ?
       WHERE id = ?
     `;
-    db.run(query, [nombre, email, telefono, direccion, cedula, rif, id], function (err) {
-      callback(err, this?.changes);
-    });
+    db.run(query, [nombre, email, telefono, direccion, cedula, rif, id], callback);
   },
 
-  delete: (id, callback) => {
+  eliminar(id, callback) {
     const query = 'DELETE FROM clientes WHERE id = ?';
-    db.run(query, [id], function (err) {
-      callback(err, this?.changes);
-    });
+    db.run(query, [id], callback);
   }
 };
 

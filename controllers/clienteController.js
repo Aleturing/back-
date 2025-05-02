@@ -1,62 +1,40 @@
-const db = require('../database/db');
+const Cliente = require('../models/Cliente');
 
-// Obtener todos los clientes
-exports.getClientes = (req, res) => {
-    db.all('SELECT * FROM clientes', [], (err, rows) => {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        res.json(rows);
-    });
+exports.getClientes = (req, res, next) => {
+  Cliente.obtenerTodos((err, rows) => {
+    if (err) return next(err);
+    res.json(rows);
+  });
 };
 
-// Obtener un cliente por ID
-exports.getClienteById = (req, res) => {
-    const { id } = req.params;
-    db.get('SELECT * FROM clientes WHERE id = ?', [id], (err, row) => {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        if (!row) {
-            return res.status(404).json({ message: 'Cliente no encontrado' });
-        }
-        res.json(row);
-    });
+exports.getClienteById = (req, res, next) => {
+  const { id } = req.params;
+  Cliente.obtenerPorId(id, (err, row) => {
+    if (err) return next(err);
+    if (!row) return res.status(404).json({ message: 'Cliente no encontrado' });
+    res.json(row);
+  });
 };
 
-// Crear un nuevo cliente
-exports.createCliente = (req, res) => {
-    const { nombre, email, telefono, direccion, cedula, rif } = req.body;
-    const query = 'INSERT INTO clientes (nombre, email, telefono, direccion, cedula, rif) VALUES (?, ?, ?, ?, ?, ?)';
-    db.run(query, [nombre, email, telefono, direccion, cedula, rif], function (err) {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        res.status(201).json({ id: this.lastID });
-    });
+exports.createCliente = (req, res, next) => {
+  Cliente.crear(req.body, (err, id) => {
+    if (err) return next(err);
+    res.status(201).json({ id });
+  });
 };
 
-// Actualizar un cliente
-exports.updateCliente = (req, res) => {
-    const { id } = req.params;
-    const { nombre, email, telefono, direccion, cedula, rif } = req.body;
-    const query = 'UPDATE clientes SET nombre = ?, email = ?, telefono = ?, direccion = ?, cedula = ?, rif = ? WHERE id = ?';
-    db.run(query, [nombre, email, telefono, direccion, cedula, rif, id], function (err) {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        res.json({ message: 'Cliente actualizado correctamente' });
-    });
+exports.updateCliente = (req, res, next) => {
+  const { id } = req.params;
+  Cliente.actualizar(id, req.body, (err) => {
+    if (err) return next(err);
+    res.json({ message: 'Cliente actualizado correctamente' });
+  });
 };
 
-// Eliminar un cliente
-exports.deleteCliente = (req, res) => {
-    const { id } = req.params;
-    const query = 'DELETE FROM clientes WHERE id = ?';
-    db.run(query, [id], function (err) {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        res.json({ message: 'Cliente eliminado correctamente' });
-    });
+exports.deleteCliente = (req, res, next) => {
+  const { id } = req.params;
+  Cliente.eliminar(id, (err) => {
+    if (err) return next(err);
+    res.json({ message: 'Cliente eliminado correctamente' });
+  });
 };

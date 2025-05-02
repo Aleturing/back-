@@ -1,124 +1,90 @@
 const bcrypt = require("bcryptjs");
 const Usuario = require("../models/Usuario");
 
-const obtenerUsuarios = (req, res) => {
+// Listar todos los usuarios
+const obtenerUsuarios = (req, res, next) => {
   Usuario.obtenerTodos((err, rows) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-    } else {
-      res.json(rows);
-    }
+    if (err) return next(err);
+    res.json(rows);
   });
 };
 
-const obtenerUsuarioPorId = (req, res) => {
+// Obtener un usuario por ID
+const obtenerUsuarioPorId = (req, res, next) => {
   const { id } = req.params;
   Usuario.obtenerPorId(id, (err, row) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-    } else if (!row) {
-      res.status(404).json({ mensaje: "Usuario no encontrado" });
-    } else {
-      res.json(row);
-    }
+    if (err) return next(err);
+    if (!row) return res.status(404).json({ mensaje: "Usuario no encontrado" });
+    res.json(row);
   });
 };
 
-const crearUsuario = (req, res) => {
+// Crear un nuevo usuario
+const crearUsuario = (req, res, next) => {
   const usuario = req.body;
-  
-  // ecriptar la contraseña antes de almacenarla
-  bcrypt.hash(usuario.contraseña, 10, (err, hashedPassword) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    }
+  if (!usuario || !usuario.contraseña) {
+    return res.status(400).json({ error: "Falta el campo 'contraseña'" });
+  }
 
-    // reemplazar la contraseña 
+  bcrypt.hash(usuario.contraseña, 10, (err, hashedPassword) => {
+    if (err) return next(err);
     usuario.contraseña = hashedPassword;
 
-    // guardar el usuario con la contraseña encriptada
     Usuario.crear(usuario, (err, id) => {
-      if (err) {
-        res.status(500).json({ error: err.message });
-      } else {
-        res.status(201).json({
-          mensaje: "Usuario creado correctamente",
-          id,
-        });
-      }
+      if (err) return next(err);
+      res.status(201).json({ mensaje: "Usuario creado correctamente", id });
     });
   });
 };
 
-const actualizarUsuario = (req, res) => {
+// Actualizar un usuario existente
+const actualizarUsuario = (req, res, next) => {
   const { id } = req.params;
   const usuario = req.body;
 
-  // si la contraseña ha cambiado, la encripto
+  const actualizar = () => {
+    Usuario.actualizar(id, usuario, (err) => {
+      if (err) return next(err);
+      res.json({ mensaje: "Usuario actualizado" });
+    });
+  };
+
   if (usuario.contraseña) {
     bcrypt.hash(usuario.contraseña, 10, (err, hashedPassword) => {
-      if (err) {
-        return res.status(500).json({ error: err.message });
-      }
-
-      // reemplazar la contraseña en el objeto usuario con la versión encriptada
+      if (err) return next(err);
       usuario.contraseña = hashedPassword;
-
-      // actualizar el usuario 
-      Usuario.actualizar(id, usuario, (err) => {
-        if (err) {
-          res.status(500).json({ error: err.message });
-        } else {
-          res.json({ mensaje: "Usuario actualizado" });
-        }
-      });
+      actualizar();
     });
   } else {
-    // actualizamos los demás campos
-    Usuario.actualizar(id, usuario, (err) => {
-      if (err) {
-        res.status(500).json({ error: err.message });
-      } else {
-        res.json({ mensaje: "Usuario actualizado" });
-      }
-    });
+    actualizar();
   }
 };
 
-const eliminarUsuario = (req, res) => {
+// Eliminar un usuario
+const eliminarUsuario = (req, res, next) => {
   const { id } = req.params;
   Usuario.eliminar(id, (err) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-    } else {
-      res.json({ mensaje: "Usuario eliminado" });
-    }
+    if (err) return next(err);
+    res.json({ mensaje: "Usuario eliminado" });
   });
 };
 
-// Función de login, para comprobar la contraseña encriptada
-const loginUsuario = (req, res) => {
+// Login de usuario: comparar contraseña encriptada
+const loginUsuario = (req, res, next) => {
   const { nombre, contraseña } = req.body;
+  if (!nombre || !contraseña) {
+    return res.status(400).json({ error: "Faltan credenciales" });
+  }
 
   Usuario.obtenerPorNombre(nombre, (err, row) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-    } else if (!row) {
-      res.status(404).json({ mensaje: "Usuario no encontrado" });
-    } else {
-      // comparar la contraseña ingresada con la contraseña encriptada en la base de datos
-      bcrypt.compare(contraseña, row.contraseña, (err, isMatch) => {
-        if (err) {
-          res.status(500).json({ error: err.message });
-        } else if (isMatch) {
-          // si la contraseña coincide
-          res.json({ mensaje: "Login exitoso", usuario: row });
-        } else {
-          // si la contraseña no coincide
-          res.status(400).json({ mensaje: "Contraseña incorrecta" });
-        }
-      });
-    }
+    if (err) return next(err);
+    if (!row) return res.status(404).json({ mensaje: "Usuario no encontrado" });
+
+    bcrypt.compare(contraseña, row.contraseña, (err, isMatch) => {
+      if (err) return next(err);
+      if (!isMatch) return res.status(400).json({ mensaje: "Contraseña incorrecta" });
+      res.json({ mensaje: "Login exitoso", usuario: row });
+    });
   });
 };
 

@@ -1,72 +1,49 @@
-const db = require('../database/db');
+const DevolucionCompra = require('../models/DevolucionCompra');
 
 // Obtener todas las devoluciones de compra
-exports.getDevolucionesCompra = (req, res) => {
-    db.all('SELECT * FROM devolucion_compra', [], (err, rows) => {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        res.json(rows);
-    });
+exports.getDevolucionesCompra = (req, res, next) => {
+  DevolucionCompra.obtenerTodas((err, filas) => {
+    if (err) return next(err);
+    res.json(filas);
+  });
 };
 
 // Obtener una devolución de compra por ID
-exports.getDevolucionCompraById = (req, res) => {
-    const { id } = req.params;
-    db.get('SELECT * FROM devolucion_compra WHERE id = ?', [id], (err, row) => {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        if (!row) {
-            return res.status(404).json({ message: 'Devolución de compra no encontrada' });
-        }
-        res.json(row);
-    });
+exports.getDevolucionCompraById = (req, res, next) => {
+  const { id } = req.params;
+  DevolucionCompra.obtenerPorId(id, (err, fila) => {
+    if (err) return next(err);
+    if (!fila) return res.status(404).json({ mensaje: 'Devolución de compra no encontrada' });
+    res.json(fila);
+  });
 };
 
 // Crear una nueva devolución de compra
-exports.createDevolucionCompra = (req, res) => {
-    const { factura_compra_id, motivo, tasa } = req.body;
-    const query = 'INSERT INTO devolucion_compra (factura_compra_id, motivo, tasa) VALUES (?, ?, ?)';
-    
-    db.run(query, [factura_compra_id, motivo, tasa], function (err) {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        res.status(201).json({ message: 'Devolución de compra creada correctamente', id: this.lastID });
-    });
+exports.createDevolucionCompra = (req, res, next) => {
+  const datos = req.body;
+  DevolucionCompra.crear(datos, (err, id) => {
+    if (err) return next(err);
+    res.status(201).json({ mensaje: 'Devolución de compra creada correctamente', id });
+  });
 };
 
 // Actualizar una devolución de compra
-exports.updateDevolucionCompra = (req, res) => {
-    const { id } = req.params;
-    const { factura_compra_id, motivo, tasa } = req.body;
-    const query = 'UPDATE devolucion_compra SET factura_compra_id = ?, motivo = ?, tasa = ? WHERE id = ?';
-
-    db.run(query, [factura_compra_id, motivo, tasa, id], function (err) {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        if (this.changes === 0) {
-            return res.status(404).json({ message: 'Devolución de compra no encontrada' });
-        }
-        res.json({ message: 'Devolución de compra actualizada correctamente' });
-    });
+exports.updateDevolucionCompra = (req, res, next) => {
+  const { id } = req.params;
+  const datos = req.body;
+  DevolucionCompra.actualizar(id, datos, (err, cambios) => {
+    if (err) return next(err);
+    if (cambios === 0) return res.status(404).json({ mensaje: 'Devolución de compra no encontrada' });
+    res.json({ mensaje: 'Devolución de compra actualizada correctamente' });
+  });
 };
 
 // Eliminar una devolución de compra
-exports.deleteDevolucionCompra = (req, res) => {
-    const { id } = req.params;
-    const query = 'DELETE FROM devolucion_compra WHERE id = ?';
-
-    db.run(query, [id], function (err) {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        if (this.changes === 0) {
-            return res.status(404).json({ message: 'Devolución de compra no encontrada' });
-        }
-        res.json({ message: 'Devolución de compra eliminada correctamente' });
-    });
+exports.deleteDevolucionCompra = (req, res, next) => {
+  const { id } = req.params;
+  DevolucionCompra.eliminar(id, (err, cambios) => {
+    if (err) return next(err);
+    if (cambios === 0) return res.status(404).json({ mensaje: 'Devolución de compra no encontrada' });
+    res.json({ mensaje: 'Devolución de compra eliminada correctamente' });
+  });
 };
-

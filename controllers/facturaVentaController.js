@@ -1,136 +1,68 @@
-const db = require("../database/db");
+const FacturaVenta = require('../models/FacturaVenta');
 
-// Obtener todas las facturas de venta
-exports.getFacturasVenta = (req, res) => {
-  const query = `
-        SELECT 
-            f.id, 
-            f.cliente_id, 
-            f.fecha, 
-            f.total, 
-            u.nombre AS usuario_nombre, 
-            f.anulada, 
-            f.tasa, 
-            f.detalle_factura_id, 
-            f.devolucion_venta_id, 
-            f.IVA
-        FROM factura_venta f
-        Left JOIN usuario u ON f.usuario_id = u.id
-    `;
-
-  db.all(query, [], (err, rows) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    }
+// Listar todas las facturas de venta
+const getFacturasVenta = (req, res, next) => {
+  FacturaVenta.getAll((err, rows) => {
+    if (err) return next(err);
     res.json(rows);
   });
 };
 
 // Obtener una factura de venta por ID
-exports.getFacturaVentaById = (req, res) => {
+const getFacturaVentaById = (req, res, next) => {
   const { id } = req.params;
-  db.get("SELECT * FROM factura_venta WHERE id = ?", [id], (err, row) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    }
-    if (!row) {
-      return res
-        .status(404)
-        .json({ message: "Factura de venta no encontrada" });
-    }
+  FacturaVenta.getById(id, (err, row) => {
+    if (err) return next(err);
+    if (!row) return res.status(404).json({ message: 'Factura de venta no encontrada' });
     res.json(row);
   });
 };
 
 // Crear una nueva factura de venta
-exports.createFacturaVenta = (req, res) => {
-  const {
-    cliente_id,
-    total,
-    usuario_id,
-    tasa,
-    detalle_factura_id,
-    devolucion_venta_id,
-    iva,
-  } = req.body;
-  const query =
-    "INSERT INTO factura_venta (cliente_id, total, usuario_id, tasa, detalle_factura_id, devolucion_venta_id,IVA) VALUES (?, ?, ?, ?, ?, ?, ?)";
-  db.run(
-    query,
-    [
-      cliente_id,
-      total,
-      usuario_id,
-      tasa,
-      detalle_factura_id,
-      devolucion_venta_id,
-      iva,
-    ],
-    function (err) {
-      if (err) {
-        return res.status(500).json({ error: err.message });
-      }
-      res.status(201).json({ id: this.lastID });
-    }
-  );
+const createFacturaVenta = (req, res, next) => {
+  const data = req.body;
+  FacturaVenta.create(data, (err, insertId) => {
+    if (err) return next(err);
+    res.status(201).json({ message: 'Factura de venta creada correctamente', id: insertId });
+  });
 };
 
-// Actualizar una factura de venta
-exports.updateFacturaVenta = (req, res) => {
+// Actualizar una factura de venta existente
+const updateFacturaVenta = (req, res, next) => {
   const { id } = req.params;
-  const {
-    cliente_id,
-    total,
-    usuario_id,
-    tasa,
-    detalle_factura_id,
-    devolucion_venta_id,
-  } = req.body;
-  const query =
-    "UPDATE factura_venta SET cliente_id = ?, total = ?, usuario_id = ?, tasa = ?, detalle_factura_id = ?, devolucion_venta_id = ? WHERE id = ?";
-  db.run(
-    query,
-    [
-      cliente_id,
-      total,
-      usuario_id,
-      tasa,
-      detalle_factura_id,
-      devolucion_venta_id,
-      id,
-    ],
-    function (err) {
-      if (err) {
-        return res.status(500).json({ error: err.message });
-      }
-      res.json({ message: "Factura de venta actualizada correctamente" });
-    }
-  );
+  const data = req.body;
+  FacturaVenta.update(id, data, (err, affectedRows) => {
+    if (err) return next(err);
+    if (affectedRows === 0) return res.status(404).json({ message: 'Factura de venta no encontrada' });
+    res.json({ message: 'Factura de venta actualizada correctamente' });
+  });
 };
 
 // Eliminar una factura de venta
-exports.deleteFacturaVenta = (req, res) => {
+const deleteFacturaVenta = (req, res, next) => {
   const { id } = req.params;
-  const query = "DELETE FROM factura_venta WHERE id = ?";
-  db.run(query, [id], function (err) {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    }
-    res.json({ message: "Factura de venta eliminada correctamente" });
+  FacturaVenta.delete(id, (err, affectedRows) => {
+    if (err) return next(err);
+    if (affectedRows === 0) return res.status(404).json({ message: 'Factura de venta no encontrada' });
+    res.json({ message: 'Factura de venta eliminada correctamente' });
   });
 };
 
-exports.getUltimoNumeroFactura = (req, res) => {
-  const query = "SELECT MAX(id) AS ultimo_id FROM factura_venta";
-  db.get(query, [], (err, row) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    }
-    if (!row || row.ultimo_id === null) {
-      return res.status(404).json({ message: "No se encontraron facturas" });
-    }
-
-    // Responder al cliente
-    res.json({ ultimo_numero_factura: row.ultimo_id + 1 });
+// Obtener el siguiente número de factura (max ID + 1)
+const getUltimoNumeroFactura = (req, res, next) => {
+  FacturaVenta.getAll((err, rows) => {
+    if (err) return next(err);
+    if (!rows || rows.length === 0) return res.json({ ultimo_numero_factura: 1 });
+    const maxId = rows.reduce((max, row) => (row.id > max ? row.id : max), 0);
+    res.json({ ultimo_numero_factura: maxId + 1 });
   });
+};
+
+module.exports = {
+  getFacturasVenta,
+  getFacturaVentaById,
+  createFacturaVenta,
+  updateFacturaVenta,
+  deleteFacturaVenta,
+  getUltimoNumeroFactura
 };

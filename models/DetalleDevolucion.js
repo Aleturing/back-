@@ -2,41 +2,55 @@ const db = require("../database/db");
 
 const DetalleDevolucion = {
   getAll: (callback) => {
-    db.all('SELECT * FROM detalle_devolucion', [], callback);
+    const sql = "SELECT * FROM detalle_devolucion";
+    db.query(sql, (err, results) => {
+      callback(err, results);
+    });
   },
 
   getById: (id, callback) => {
-    db.get('SELECT * FROM detalle_devolucion WHERE id = ?', [id], callback);
+    const sql = "SELECT * FROM detalle_devolucion WHERE id = ?";
+    db.query(sql, [id], (err, results) => {
+      callback(err, results[0]);
+    });
   },
 
   create: (data, callback) => {
     const { devolucion_compra_id, devolucion_venta_id, producto_id, cantidad, motivo } = data;
-    const query = `
+    const sql = `
       INSERT INTO detalle_devolucion 
-      (devolucion_compra_id, devolucion_venta_id, producto_id, cantidad, motivo) 
+      (devolucion_compra_id, devolucion_venta_id, producto_id, cantidad, motivo)
       VALUES (?, ?, ?, ?, ?)
     `;
-    db.run(query, [devolucion_compra_id, devolucion_venta_id, producto_id, cantidad, motivo], function (err) {
-      callback(err, this?.lastID);
-    });
+    db.query(
+      sql,
+      [devolucion_compra_id, devolucion_venta_id, producto_id, cantidad, motivo],
+      (err, results) => {
+        callback(err, results.insertId);
+      }
+    );
   },
 
   update: (id, data, callback) => {
     const { devolucion_compra_id, devolucion_venta_id, producto_id, cantidad, motivo } = data;
-    const query = `
-      UPDATE detalle_devolucion 
-      SET devolucion_compra_id = ?, devolucion_venta_id = ?, producto_id = ?, cantidad = ?, motivo = ? 
+    const sql = `
+      UPDATE detalle_devolucion
+      SET devolucion_compra_id = ?, devolucion_venta_id = ?, producto_id = ?, cantidad = ?, motivo = ?
       WHERE id = ?
     `;
-    db.run(query, [devolucion_compra_id, devolucion_venta_id, producto_id, cantidad, motivo, id], function (err) {
-      callback(err, this?.changes);
-    });
+    db.query(
+      sql,
+      [devolucion_compra_id, devolucion_venta_id, producto_id, cantidad, motivo, id],
+      (err, results) => {
+        callback(err, results.affectedRows);
+      }
+    );
   },
 
   delete: (id, callback) => {
-    const query = 'DELETE FROM detalle_devolucion WHERE id = ?';
-    db.run(query, [id], function (err) {
-      callback(err, this?.changes);
+    const sql = "DELETE FROM detalle_devolucion WHERE id = ?";
+    db.query(sql, [id], (err, results) => {
+      callback(err, results.affectedRows);
     });
   }
 };

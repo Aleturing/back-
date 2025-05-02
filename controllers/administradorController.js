@@ -1,71 +1,40 @@
-const db = require('../database/db');
+const Administrador = require('../models/Administrador');
 
-// Obtener todos los administradores
-exports.getAdministradores = (req, res) => {
-    db.all('SELECT * FROM administrador', [], (err, rows) => {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        res.json(rows);
-    });
+exports.getAdministradores = (req, res, next) => {
+  Administrador.obtenerTodos((err, rows) => {
+    if (err) return next(err);
+    res.json(rows);
+  });
 };
 
-// Obtener un administrador por ID
-exports.getAdministradorById = (req, res) => {
-    const { id } = req.params;
-    db.get('SELECT * FROM administrador WHERE id = ?', [id], (err, row) => {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        if (!row) {
-            return res.status(404).json({ message: 'Administrador no encontrado' });
-        }
-        res.json(row);
-    });
+exports.getAdministradorById = (req, res, next) => {
+  const { id } = req.params;
+  Administrador.obtenerPorId(id, (err, row) => {
+    if (err) return next(err);
+    if (!row) return res.status(404).json({ message: 'Administrador no encontrado' });
+    res.json(row);
+  });
 };
 
-// Crear un nuevo administrador
-exports.createAdministrador = (req, res) => {
-    const { usuario_id, nivel_acceso } = req.body;
-    const query = 'INSERT INTO administrador (usuario_id, nivel_acceso) VALUES (?, ?)';
-
-    db.run(query, [usuario_id, nivel_acceso], function (err) {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        res.status(201).json({ message: 'Administrador creado correctamente', id: this.lastID });
-    });
+exports.createAdministrador = (req, res, next) => {
+  Administrador.crear(req.body, (err, id) => {
+    if (err) return next(err);
+    res.status(201).json({ id });
+  });
 };
 
-// Actualizar un administrador
-exports.updateAdministrador = (req, res) => {
-    const { id } = req.params;
-    const { usuario_id, nivel_acceso } = req.body;
-    const query = 'UPDATE administrador SET usuario_id = ?, nivel_acceso = ? WHERE id = ?';
-
-    db.run(query, [usuario_id, nivel_acceso, id], function (err) {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        if (this.changes === 0) {
-            return res.status(404).json({ message: 'Administrador no encontrado' });
-        }
-        res.json({ message: 'Administrador actualizado correctamente' });
-    });
+exports.updateAdministrador = (req, res, next) => {
+  const { id } = req.params;
+  Administrador.actualizar(id, req.body, (err) => {
+    if (err) return next(err);
+    res.json({ message: 'Administrador actualizado correctamente' });
+  });
 };
 
-// Eliminar un administrador
-exports.deleteAdministrador = (req, res) => {
-    const { id } = req.params;
-    const query = 'DELETE FROM administrador WHERE id = ?';
-
-    db.run(query, [id], function (err) {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        if (this.changes === 0) {
-            return res.status(404).json({ message: 'Administrador no encontrado' });
-        }
-        res.json({ message: 'Administrador eliminado correctamente' });
-    });
+exports.deleteAdministrador = (req, res, next) => {
+  const { id } = req.params;
+  Administrador.eliminar(id, (err) => {
+    if (err) return next(err);
+    res.json({ message: 'Administrador eliminado correctamente' });
+  });
 };

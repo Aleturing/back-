@@ -1,41 +1,30 @@
-const db = require("../database/db");
+const db = require('../database/db');
 
 const DevolucionCompra = {
-  getAll: (callback) => {
-    db.all('SELECT * FROM devolucion_compra', [], callback);
+  obtenerTodas(callback) {
+    db.all('SELECT * FROM devolucion_compra', callback);
   },
 
-  getById: (id, callback) => {
+  obtenerPorId(id, callback) {
     db.get('SELECT * FROM devolucion_compra WHERE id = ?', [id], callback);
   },
 
-  create: (data, callback) => {
-    const { factura_compra_id, fecha, motivo, tasa, anulada, detalle_devolucion_id } = data;
-    const query = `
-      INSERT INTO devolucion_compra 
-      (factura_compra_id, fecha, motivo, tasa, anulada, detalle_devolucion_id) 
-      VALUES (?, ?, ?, ?, ?, ?)
-    `;
-    db.run(query, [factura_compra_id, fecha, motivo, tasa, anulada, detalle_devolucion_id], function (err) {
+  crear({ factura_compra_id, motivo, tasa }, callback) {
+    const query = 'INSERT INTO devolucion_compra (factura_compra_id, motivo, tasa) VALUES (?, ?, ?)';
+    db.run(query, [factura_compra_id, motivo, tasa], function (err) {
       callback(err, this?.lastID);
     });
   },
 
-  update: (id, data, callback) => {
-    const { factura_compra_id, fecha, motivo, tasa, anulada, detalle_devolucion_id } = data;
-    const query = `
-      UPDATE devolucion_compra 
-      SET factura_compra_id = ?, fecha = ?, motivo = ?, tasa = ?, anulada = ?, detalle_devolucion_id = ? 
-      WHERE id = ?
-    `;
-    db.run(query, [factura_compra_id, fecha, motivo, tasa, anulada, detalle_devolucion_id, id], function (err) {
+  actualizar(id, { factura_compra_id, motivo, tasa }, callback) {
+    const query = 'UPDATE devolucion_compra SET factura_compra_id = ?, motivo = ?, tasa = ? WHERE id = ?';
+    db.run(query, [factura_compra_id, motivo, tasa, id], function (err) {
       callback(err, this?.changes);
     });
   },
 
-  delete: (id, callback) => {
-    const query = 'DELETE FROM devolucion_compra WHERE id = ?';
-    db.run(query, [id], function (err) {
+  eliminar(id, callback) {
+    db.run('DELETE FROM devolucion_compra WHERE id = ?', [id], function (err) {
       callback(err, this?.changes);
     });
   }
