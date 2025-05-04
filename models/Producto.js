@@ -11,7 +11,8 @@ const Producto = {
   getById: (id, callback) => {
     const sql = "SELECT * FROM productos WHERE id = ?";
     db.query(sql, [id], (err, results) => {
-      callback(err, results[0]);
+      if (err) return callback(err);
+      callback(null, results && results[0] ? results[0] : null);
     });
   },
 
@@ -21,13 +22,12 @@ const Producto = {
       INSERT INTO productos (nombre, descripcion, precio, stock, foto)
       VALUES (?, ?, ?, ?, ?)
     `;
-    db.query(
-      sql,
-      [nombre, descripcion, precio, stock, foto],
-      (err, results) => {
-        callback(err, results.insertId);
-      }
-    );
+    db.query(sql, [nombre, descripcion, precio, stock, foto], (err, results) => {
+      if (err) return callback(err);
+      // results.insertId contiene el ID generado
+      const insertId = results && results.insertId ? results.insertId : null;
+      callback(null, insertId);
+    });
   },
 
   update: (id, data, callback) => {
@@ -37,19 +37,21 @@ const Producto = {
       SET nombre = ?, descripcion = ?, precio = ?, stock = ?, foto = ?
       WHERE id = ?
     `;
-    db.query(
-      sql,
-      [nombre, descripcion, precio, stock, foto, id],
-      (err, results) => {
-        callback(err, results.affectedRows);
-      }
-    );
+    db.query(sql, [nombre, descripcion, precio, stock, foto, id], (err, results) => {
+      if (err) return callback(err);
+      // results.affectedRows indica cuántas filas fueron actualizadas
+      const affected = results && typeof results.affectedRows === 'number' ? results.affectedRows : 0;
+      callback(null, affected);
+    });
   },
 
   delete: (id, callback) => {
     const sql = "DELETE FROM productos WHERE id = ?";
     db.query(sql, [id], (err, results) => {
-      callback(err, results.affectedRows);
+      if (err) return callback(err);
+      // Manejar caso en que results sea undefined
+      const rowsDeleted = results && typeof results.affectedRows === 'number' ? results.affectedRows : 0;
+      callback(null, rowsDeleted);
     });
   }
 };
