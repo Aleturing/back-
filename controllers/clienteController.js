@@ -16,6 +16,15 @@ exports.getClienteById = (req, res, next) => {
   });
 };
 
+exports.getClienteByCi = (req, res, next) => {
+  const { cedula } = req.params;
+  Cliente.obtenerPorCi(cedula, (err, row) => {
+    if (err) return next(err);
+    if (!row) return res.status(404).json({ message: "Cliente no encontrado" });
+    res.json(row);
+  });
+};
+
 exports.createCliente = (req, res, next) => {
   Cliente.crear(req.body, (err, id) => {
     if (err) return next(err);
@@ -38,21 +47,3 @@ exports.deleteCliente = (req, res, next) => {
     res.json({ message: "Cliente eliminado correctamente" });
   });
 };
-
-exports.getClienteByCi((req, res, next) => {
-  const { cedula } = req.params;
-
-  const query = "SELECT * FROM clientes WHERE cedula = ?";
-  db.query(query, [cedula], (err, results) => {
-    if (err) {
-      console.error("Error al buscar cliente por cédula:", err);
-      return res.status(500).json({ error: "Error en la base de datos" });
-    }
-
-    if (results.length === 0) {
-      return res.status(404).json({ error: "Cliente no encontrado" });
-    }
-
-    res.json(results[0]);
-  });
-});

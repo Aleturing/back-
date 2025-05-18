@@ -18,6 +18,16 @@ const Cliente = {
     });
   },
 
+    /** Obtener cliente por ID */
+  obtenerPorCi(ci, callback) {
+  const sql = "SELECT * FROM clientes WHERE cedula = ?";
+    db.query(sql, [ci], (err, results) => {
+      if (err) return callback(err);
+      const cliente = Array.isArray(results) && results.length > 0 ? results[0] : null;
+      callback(null, cliente);
+    });
+  },
+
   /** Crear nuevo cliente */
   crear({ nombre, email, telefono, direccion, cedula, rif }, callback) {
     const sql = `
