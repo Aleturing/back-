@@ -1,29 +1,39 @@
 const express = require("express");
-const app = express();
 const cors = require("cors");
-const helmet = require("helmet"); // <- Paso 2: Seguridad
-const rateLimit = require("express-rate-limit"); // <- Paso 2: Limitar requests
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
 
-// Configuración de rate limiting (agregar esto)
+const app = express();
+
+// ================== Seguridad y control de tráfico ==================
+
+// Configuración de CORS
+app.use(cors({
+  origin: "http://localhost:3001", // Cambia esto a tu frontend real en producción
+  credentials: true,               // Para permitir headers como Authorization
+}));
+
+// Helmet para seguridad en headers HTTP
+app.use(helmet());
+
+// Rate limiting para evitar abusos (100 requests cada 15 minutos por IP)
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 100, // Límite de 100 requests por IP
+  windowMs: 15 * 60 * 1000,
+  max: 100,
   standardHeaders: true,
   legacyHeaders: false,
 });
+app.use(limiter);
 
-// ================== Middlewares ==================
-app.use(cors());
-app.use(helmet()); // <- Aquí aplicamos helmet
-app.use(limiter); // <- Aquí aplicamos el rate limiting
+// Middleware para parsear JSON en el body
 app.use(express.json());
 
-// ================== Importar rutas ==================
+// ================== Rutas ==================
 const routes = require("./routes");
 const authRoutes = require("./routes/authRoutes");
 const verificarToken = require("./middlewares/authMiddleware");
 
-// ================== Rutas ==================
+// Rutas públicas
 app.use("/api", routes);
 app.use("/auth", authRoutes);
 
@@ -32,8 +42,8 @@ app.use("/api/protegida", verificarToken, (req, res) => {
   res.json({ mensaje: "Acceso autorizado", usuario: req.user });
 });
 
-// ================== Iniciar servidor ==================
-const PORT = process.env.PORT || 3000; // Mejor usar variable de entorno
+// ================== Servidor ==================
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor ejecutándose en http://localhost:${PORT}`);
 });
