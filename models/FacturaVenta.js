@@ -4,14 +4,18 @@ const FacturaVenta = {
   getAll: (callback) => {
     const sql = "SELECT * FROM factura_venta";
     db.query(sql, (err, results) => {
-      callback(err, results);
+      if (err || !results) return callback(err || new Error("Error en la consulta"), null);
+      callback(null, results);
     });
   },
 
   getById: (id, callback) => {
     const sql = "SELECT * FROM factura_venta WHERE id = ?";
     db.query(sql, [id], (err, results) => {
-      callback(err, results[0]);
+      if (err || !results || results.length === 0) {
+        return callback(err || new Error("Factura no encontrada"), null);
+      }
+      callback(null, results[0]);
     });
   },
 
@@ -26,7 +30,14 @@ const FacturaVenta = {
       sql,
       [cliente_id, fecha, total, usuario_id, anulada, tasa, detalle_factura_id, devolucion_venta_id],
       (err, results) => {
-        callback(err, results.insertId);
+        if (err || !results) {
+          console.error("❌ Error al crear factura:", err);
+          return callback(err || new Error("No se pudo guardar la factura"), null);
+        }
+        if (!results.insertId) {
+          return callback(new Error("No se obtuvo insertId al crear la factura"), null);
+        }
+        callback(null, results.insertId);
       }
     );
   },
@@ -42,7 +53,10 @@ const FacturaVenta = {
       sql,
       [cliente_id, fecha, total, usuario_id, anulada, tasa, detalle_factura_id, devolucion_venta_id, id],
       (err, results) => {
-        callback(err, results.affectedRows);
+        if (err || !results) {
+          return callback(err || new Error("Error al actualizar la factura"), null);
+        }
+        callback(null, results.affectedRows);
       }
     );
   },
@@ -50,7 +64,10 @@ const FacturaVenta = {
   delete: (id, callback) => {
     const sql = "DELETE FROM factura_venta WHERE id = ?";
     db.query(sql, [id], (err, results) => {
-      callback(err, results.affectedRows);
+      if (err || !results) {
+        return callback(err || new Error("Error al eliminar la factura"), null);
+      }
+      callback(null, results.affectedRows);
     });
   }
 };
