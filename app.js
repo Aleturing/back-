@@ -8,15 +8,8 @@ const app = express();
 // ================== Seguridad y control de tráfico ==================
 
 // Configuración de CORS
-app.use(cors({
-  
-  origin: [
-    'http://localhost:3001',
-    'https://notify-treat-perform-multimedia.trycloudflare.com',
-    'https://mention-molecules-roman-concentrations.trycloudflare.com'
-  ], // Cambia esto a tu frontend real en producción
-  credentials: true,               // Para permitir headers como Authorization
-}));
+app.use(cors({ origin: '*', credentials: true }));
+
 
 // Helmet para seguridad en headers HTTP
 app.use(helmet());
