@@ -12,7 +12,8 @@ app.use(cors({
   
   origin: [
     'http://localhost:3001',
-    'https://notify-treat-perform-multimedia.trycloudflare.com'
+    'https://notify-treat-perform-multimedia.trycloudflare.com',
+    'https://mention-molecules-roman-concentrations.trycloudflare.com'
   ], // Cambia esto a tu frontend real en producción
   credentials: true,               // Para permitir headers como Authorization
 }));
