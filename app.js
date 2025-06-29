@@ -7,9 +7,22 @@ const app = express();
 
 // ================== Seguridad y control de tráfico ==================
 
-// Configuración de CORS
-app.use(cors({ origin: '*', credentials: true }));
+// Configuración de CORS con múltiples orígenes permitidos
+const allowedOrigins = [
+  'http://localhost:3001',
+  'https://notify-treat-perform-multimedia.trycloudflare.com'
+];
 
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('No permitido por CORS'));
+    }
+  },
+  credentials: true,
+}));
 
 // Helmet para seguridad en headers HTTP
 app.use(helmet());
